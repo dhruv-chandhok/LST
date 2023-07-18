@@ -1,4 +1,4 @@
-var DATE_RANGE_2022 = ee.Filter.dayOfYear(215,225);
+var DATE_RANGE_2022 = ee.Filter.dayOfYear(222,222);
 var YEAR_RANGE_2022 = ee.Filter.calendarRange(2022,2023,'year');
 var STUDYBOUNDS_2022 = (geometry)
 
