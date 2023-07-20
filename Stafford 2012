@@ -61,6 +61,16 @@ var Stafford_2012 = clip_mean_ST_2012.reduceRegions({
 
 print(Stafford_2012);
 
+var Staffordd_2012 = clip_mean_ST_2012.reduceRegions({
+collection: geometry,
+reducer: ee.Reducer.mean().combine({
+reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
+}),
+scale: 30
+});
+
+print(Staffordd_2012);
+
 // Add a legend with a colour palette and descriptions
 
 var legend = ui.Panel({
