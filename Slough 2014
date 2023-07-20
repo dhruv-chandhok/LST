@@ -1,4 +1,4 @@
-var DATE_RANGE_2014 = ee.Filter.dayOfYear(215,225);
+var DATE_RANGE_2014 = ee.Filter.dayOfYear(222,222);
 var YEAR_RANGE_2014 = ee.Filter.calendarRange(2014, 2015, 'year');
 var STUDYBOUNDS_2014 = geometry;
 var DISPLAY = true;
