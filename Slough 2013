@@ -5,7 +5,7 @@ var DISPLAY = true;
 
 Map.setOptions('SATELLITE');
 
-Map.setCenter(-0.5252498111323423,51.47634583576247, 14);
+Map.setCenter(-0.6208, 51.5072, 12);
 
 var LC09_bands_2014 = ['ST_B10', 'QA_PIXEL'];
 var bandName_2014 = ['ST', 'QA_PIXEL'];
@@ -32,7 +32,7 @@ print(filtered_L8_2014, 'Landsat 8 ST');
 function applyScaleFactors(image) {
   var thermalBands_2014 = image.select('ST_B10').multiply(0.00341802).add(149.0)
     .subtract(273.15);
-  return image.addBands(thermalBands_2013, null, true);
+  return image.addBands(thermalBands_2014, null, true);
 }
 
 
