@@ -6,7 +6,7 @@ var DISPLAY = true;
 
 Map.setOptions('SATELLITE');
 
-Map.setCenter (-2.18261284481706,52.76884207757945, 9);
+Map.setCenter (-2.118068167082685,52.81509779715252, 12);
 
 var LC08_bands_2022 = ['ST_B10', 'QA_PIXEL']; 
 var bandName_2022 = ['ST', 'QA_PIXEL'];
