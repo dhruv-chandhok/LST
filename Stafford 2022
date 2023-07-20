@@ -34,9 +34,7 @@ function applyScaleFactors(image) {
   return image.addBands(thermalBands_2022, null, true);
 }
 
-
 var landsatST_2022 = filtered_L8_2022.map(applyScaleFactors);
-
 
 var mean_LandsatST_2022 = landsatST_2022.mean();
 
@@ -58,6 +56,16 @@ var Stafford_2022 = clip_mean_ST_2022.reduceRegions({
 });
 
 print(Stafford_2022);
+
+var Staffordd_2022 = clip_mean_ST_2022.reduceRegions({
+collection: geometry,
+reducer: ee.Reducer.mean().combine({
+reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
+}),
+scale: 30
+});
+
+print(Staffordd_2022);
 
 // Add a legend with a colour palette and descriptions
 
@@ -110,3 +118,4 @@ for (var i = 0; i < 3; i++) {
   }  
  
 Map.add(legend);
+
