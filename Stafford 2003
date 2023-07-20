@@ -58,6 +58,16 @@ scale: 30
 
 print(Stafford_2003);
 
+var Staffordd_2003 = clip_mean_ST_2003.reduceRegions({
+collection: geometry,
+reducer: ee.Reducer.mean().combine({
+reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
+}),
+scale: 30
+});
+
+print(Staffordd_2003);
+
 // Add a legend with a colour palette and descriptions
 
 var legend = ui.Panel({
