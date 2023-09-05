@@ -65,14 +65,4 @@ Map.addLayer(clip_mean_ST_2014, {
 // Print statistics for the year 2014.
 print("Stats for 2014");
 
-// Reduce regions for statistical analysis (e.g., 'Affluent' collection).
-var Slough_2014 = clip_mean_ST_2014.reduceRegions({
-  collection: Affluent,
-  reducer: ee.Reducer.mean().combine({
-    reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
-  }),
-  scale: 30
-});
 
-// Print statistics for 'Affluent' collection.
-print(Slough_2014);
