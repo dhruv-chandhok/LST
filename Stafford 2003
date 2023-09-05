@@ -1,121 +1,72 @@
-// Set study parameters
-
+// Set study parameters for the year 2003
 var DATE_RANGE_2003 = ee.Filter.dayOfYear(220, 220);
 var YEAR_RANGE_2003 = ee.Filter.calendarRange(2003, 2004, 'year');
 var STUDYBOUNDS_2003 = geometry;
 var DISPLAY = true;
 
+// Set map options to 'SATELLITE' view.
 Map.setOptions('SATELLITE');
 
-Map.setCenter(-2.118068167082685,52.81509779715252, 12);
+// Set the map center and zoom level.
+Map.setCenter(-2.118068167082685, 52.81509779715252, 12);
 
+// Define Landsat bands and band names for 2003.
 var LC05_bands_2003 = ['ST_B6', 'QA_PIXEL'];
 var bandName_2003 = ['ST', 'QA_PIXEL'];
 
+// Define a function for cloud masking.
 function cloudMask(image) {
-var qa_2003 = image.select('QA_PIXEL');
-var mask_2003 = qa_2003.bitwiseAnd(1 << 3)
-.or(qa_2003.bitwiseAnd(1 << 4));
-return image.updateMask(mask_2003.not());
+  var qa_2003 = image.select('QA_PIXEL');
+  var mask_2003 = qa_2003.bitwiseAnd(1 << 3)
+    .or(qa_2003.bitwiseAnd(1 << 4));
+  return image.updateMask(mask_2003.not());
 }
 
+// Create an ImageCollection of Landsat 5 imagery for 2003.
 var L5_2003 = ee.ImageCollection('LANDSAT/LT05/C02/T1_L2')
-.select('ST_B6', 'QA_PIXEL')
-.filterBounds(STUDYBOUNDS_2003)
-.filter(DATE_RANGE_2003)
-.filter(YEAR_RANGE_2003)
-.map(cloudMask);
+  .select('ST_B6', 'QA_PIXEL')
+  .filterBounds(STUDYBOUNDS_2003)
+  .filter(DATE_RANGE_2003)
+  .filter(YEAR_RANGE_2003)
+  .map(cloudMask);
 
+// Filter the collection to remove images with cloud cover greater than 60%.
 var filtered_L5_2003 = L5_2003.filter(ee.Filter.lt('CLOUD_COVER', 60));
 
+// Define a function to apply scale factors for thermal bands.
 function applyScaleFactors(image) {
-var thermalBands_2003 = image.select('ST_B6').multiply(0.00341802).add(149.0)
-.subtract(273.15);
-return image.addBands(thermalBands_2003, null, true);
+  var thermalBands_2003 = image.select('ST_B6').multiply(0.00341802).add(149.0)
+    .subtract(273.15);
+  return image.addBands(thermalBands_2003, null, true);
 }
 
+// Apply scale factors to the filtered Landsat imagery for 2003.
 var landsatST_2003 = filtered_L5_2003.map(applyScaleFactors);
 
+// Calculate the mean of Landsat surface temperature for 2003.
 var mean_LandsatST_2003 = landsatST_2003.mean();
 
+// Clip the mean surface temperature image to the study bounds.
 var clip_mean_ST_2003 = mean_LandsatST_2003.clip(STUDYBOUNDS_2003);
 
+// Add the clipped surface temperature image to the map.
 Map.addLayer(clip_mean_ST_2003, {
-bands: 'ST_B6',
-min: 15, max: 45,
-palette: ['blue', 'white', 'red']
+  bands: 'ST_B6',
+  min: 15, max: 45,
+  palette: ['blue', 'white', 'red']
 }, "ST_2003", DISPLAY);
 
+// Print statistics for the year 2003.
 print("Stats for 2003")
 
-var Stafford_2003 = clip_mean_ST_2003.reduceRegions({
-collection: Affluent,
-reducer: ee.Reducer.mean().combine({
-reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
-}),
-scale: 30
-});
-
-print(Stafford_2003);
-
+// Reduce regions for statistical analysis (e.g., 'geometry' collection).
 var Staffordd_2003 = clip_mean_ST_2003.reduceRegions({
-collection: geometry,
-reducer: ee.Reducer.mean().combine({
-reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
-}),
-scale: 30
+  collection: geometry,
+  reducer: ee.Reducer.mean().combine({
+    reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
+  }),
+  scale: 30
 });
 
+// Print statistics for the 'geometry' collection.
 print(Staffordd_2003);
-
-// Add a legend with a colour palette and descriptions
-
-var legend = ui.Panel({
-  style: {
-    position: 'bottom-left',
-    padding: '8px 15px'
-  }
-});
- 
-var legendTitle = ui.Label({
-  value: 'Land Surface Temperature 2003',
-  style: {
-    fontWeight: 'bold',
-    fontSize: '18px',
-    margin: '0 0 4px 0',
-    padding: '0'
-    }
-});
- 
-legend.add(legendTitle);
- 
-var makeRow = function(color, name) {
- 
-      var colorBox = ui.Label({
-        style: {
-          backgroundColor: '#' + color,
-          padding: '8px',
-          margin: '0 0 4px 0'
-        }
-      });
- 
-      var description = ui.Label({
-        value: name,
-        style: {margin: '0 0 4px 6px'}
-      });
- 
-      return ui.Panel({
-        widgets: [colorBox, description],
-        layout: ui.Panel.Layout.Flow('horizontal')
-      });
-};
- 
-var palette = [ '0000ff', 'ffffff', 'ff0000'];
- 
-var names = ['<30C','30-40C','>40C'];
- 
-for (var i = 0; i < 3; i++) {
-  legend.add(makeRow(palette[i], names[i]));
-  }  
- 
-Map.add(legend);
