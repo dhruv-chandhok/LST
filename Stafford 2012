@@ -1,15 +1,20 @@
-var DATE_RANGE_2012 = ee.Filter.dayOfYear(188,188);
-var YEAR_RANGE_2012 = ee.Filter.calendarRange(2012,2013, 'year');
+// Set study parameters for the year 2012
+var DATE_RANGE_2012 = ee.Filter.dayOfYear(188, 188);
+var YEAR_RANGE_2012 = ee.Filter.calendarRange(2012, 2013, 'year');
 var STUDYBOUNDS_2012 = geometry;
 var DISPLAY = true;
 
+// Set map options to 'SATELLITE' view.
 Map.setOptions('SATELLITE');
 
-Map.setCenter(-2.118068167082685,52.81509779715252, 12);
+// Set the map center and zoom level.
+Map.setCenter(-2.118068167082685, 52.81509779715252, 12);
 
+// Define Landsat bands and band names for 2012.
 var LC07_bands_2012 = ['ST_B6', 'QA_PIXEL'];
 var bandName_2012 = ['ST', 'QA_PIXEL'];
 
+// Define a function for cloud masking.
 function cloudMask(image) {
   var qa_2012 = image.select('QA_PIXEL');
   var mask_2012 = qa_2012.bitwiseAnd(1 << 3)
@@ -17,108 +22,51 @@ function cloudMask(image) {
   return image.updateMask(mask_2012.not());
 }
 
-var L7_2012 = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2") 
+// Create an ImageCollection of Landsat 7 imagery for 2012.
+var L7_2012 = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
   .select('ST_B6', 'QA_PIXEL')
   .filterBounds(STUDYBOUNDS_2012)
   .filter(DATE_RANGE_2012)
   .filter(YEAR_RANGE_2012)
   .map(cloudMask);
 
+// Filter the collection to remove images with cloud cover greater than 60%.
 var filtered_L7_2012 = L7_2012.filter(ee.Filter.lt('CLOUD_COVER', 60));
 
-print(filtered_L7_2012, 'Landsat 7 ST');
-
-
+// Define a function to apply scale factors for thermal bands.
 function applyScaleFactors(image) {
   var thermalBands_2012 = image.select('ST_B6').multiply(0.00341802).add(149.0)
     .subtract(273.15);
   return image.addBands(thermalBands_2012, null, true);
 }
 
-
+// Apply scale factors to the filtered Landsat imagery for 2012.
 var landsatST_2012 = filtered_L7_2012.map(applyScaleFactors);
 
+// Calculate the mean of Landsat surface temperature for 2012.
 var mean_LandsatST_2012 = landsatST_2012.mean();
 
+// Clip the mean surface temperature image to the study bounds.
 var clip_mean_ST_2012 = mean_LandsatST_2012.clip(STUDYBOUNDS_2012);
 
+// Add the clipped surface temperature image to the map.
 Map.addLayer(clip_mean_ST_2012, {
   bands: 'ST_B6',
   min: 20, max: 45.5,
   palette: ['blue', 'white', 'red']
 }, "ST_2012", DISPLAY);
 
-  print("Stats for 2012")
+// Print statistics for the year 2012.
+print("Stats for 2012")
 
-
-var Stafford_2012 = clip_mean_ST_2012.reduceRegions({
-  collection: Affluent,
+// Reduce regions for statistical analysis (e.g., 'geometry' collection).
+var Staffordd_2012 = clip_mean_ST_2012.reduceRegions({
+  collection: geometry,
   reducer: ee.Reducer.mean().combine({
     reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
   }),
   scale: 30
 });
 
-print(Stafford_2012);
-
-var Staffordd_2012 = clip_mean_ST_2012.reduceRegions({
-collection: geometry,
-reducer: ee.Reducer.mean().combine({
-reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
-}),
-scale: 30
-});
-
+// Print statistics for the 'geometry' collection.
 print(Staffordd_2012);
-
-// Add a legend with a colour palette and descriptions
-
-var legend = ui.Panel({
-  style: {
-    position: 'bottom-left',
-    padding: '8px 15px'
-  }
-});
- 
-var legendTitle = ui.Label({
-  value: 'Land Surface Temperature 2012',
-  style: {
-    fontWeight: 'bold',
-    fontSize: '18px',
-    margin: '0 0 4px 0',
-    padding: '0'
-    }
-});
- 
-legend.add(legendTitle);
- 
-var makeRow = function(color, name) {
- 
-      var colorBox = ui.Label({
-        style: {
-          backgroundColor: '#' + color,
-          padding: '8px',
-          margin: '0 0 4px 0'
-        }
-      });
- 
-      var description = ui.Label({
-        value: name,
-        style: {margin: '0 0 4px 6px'}
-      });
- 
-      return ui.Panel({
-        widgets: [colorBox, description],
-        layout: ui.Panel.Layout.Flow('horizontal')
-      });
-};
- 
-var palette = [ '0000ff', 'ffffff', 'ff0000'];
- 
-var names = ['<30C','30-40C','>40C'];
- 
-for (var i = 0; i < 3; i++) {
-  legend.add(makeRow(palette[i], names[i]));
-  }  
- 
-Map.add(legend);
