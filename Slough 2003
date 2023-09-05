@@ -65,18 +65,6 @@ Map.addLayer(clip_mean_ST_2003, {
 // Print statistics for the year 2003.
 print("Stats for 2003");
 
-// Reduce regions for statistical analysis (e.g., 'Affluent' and 'geometry' collections).
-var slough_2003 = clip_mean_ST_2003.reduceRegions({
-  collection: Affluent,
-  reducer: ee.Reducer.mean().combine({
-    reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
-  }),
-  scale: 30
-});
-
-// Print statistics for 'Affluent' collection.
-print(slough_2003);
-
 var sloughh_2003 = clip_mean_ST_2003.reduceRegions({
   collection: geometry,
   reducer: ee.Reducer.mean().combine({
