@@ -1,0 +1,82 @@
+// Define a date filter for a specific day of the year (day 198, which is around early July)
+var DATE_RANGE_2013 = ee.Filter.dayOfYear(198, 198);
+
+// Define a year range filter for the year 2013
+var YEAR_RANGE_2013 = ee.Filter.calendarRange(2013, 2013, 'year');
+
+// Define the study area as the provided geometry
+var STUDYBOUNDS_2013 = geometry;
+
+// Set a flag for displaying map layers
+var DISPLAY = true;
+
+// Set map options to visualize satellite imagery
+Map.setOptions('SATELLITE');
+
+// Set the map center to specific coordinates and zoom level
+Map.setCenter(0.1376, 52.2013, 11);
+
+// Define the Landsat 9 bands and band names for 2013
+var LC09_bands_2013 = ['ST_B10', 'QA_PIXEL'];
+var bandName_2013 = ['ST', 'QA_PIXEL'];
+
+// Define a function for cloud masking
+function cloudMask(image) {
+  var qa_2013 = image.select('QA_PIXEL');
+  var mask_2013 = qa_2013.bitwiseAnd(1 << 3)
+    .or(qa_2013.bitwiseAnd(1 << 4));
+  return image.updateMask(mask_2013.not());
+}
+
+// Load Landsat 9 imagery for the year 2013
+var L9_2013 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
+  .select('ST_B10', 'QA_PIXEL')
+  .filterBounds(STUDYBOUNDS_2013)
+  .filter(DATE_RANGE_2013)
+  .filter(YEAR_RANGE_2013)
+  .map(cloudMask);
+
+// Filter the loaded imagery based on cloud cover
+var filtered_L9_2013 = L9_2013.filter(ee.Filter.lt('CLOUD_COVER', 50));
+
+// Print the filtered Landsat imagery
+print(filtered_L9_2013, 'Landsat 9 ST');
+
+// Define a function to apply scale factors to the thermal bands
+function applyScaleFactors(image) {
+  var thermalBands_2013 = image.select('ST_B10').multiply(0.00341802).add(149.0)
+    .subtract(273.15);
+  return image.addBands(thermalBands_2013, null, true);
+}
+
+// Apply scale factors to the filtered Landsat imagery
+var landsatST_2013 = filtered_L9_2013.map(applyScaleFactors);
+
+// Calculate the mean of Landsat surface temperature (ST) for 2013
+var mean_LandsatST_2013 = landsatST_2013.mean();
+
+// Clip the mean surface temperature image to the study area bounds
+var clip_mean_ST_2013 = mean_LandsatST_2013.clip(STUDYBOUNDS_2013);
+
+// Add the clipped mean surface temperature layer to the map with visualization parameters
+Map.addLayer(clip_mean_ST_2013, {
+  bands: 'ST_B10',
+  min: 25,
+  max: 45,
+  palette: ['blue', 'white', 'red']
+}, "ST_2013", DISPLAY);
+
+// Print a message indicating the year of interest
+print("Stats for 2013");
+
+// Reduce the mean surface temperature image to regions within the polygon AOI and calculate statistics
+var Cambridge_2013 = clip_mean_ST_2013.reduceRegions({
+  collection: polygon,
+  reducer: ee.Reducer.mean().combine({
+    reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
+  }),
+  scale: 30
+});
+
+// Print the statistics for the polygon AOI
+print(Cambridge_2013);
