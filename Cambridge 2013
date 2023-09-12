@@ -16,7 +16,7 @@ Map.setOptions('SATELLITE');
 // Set the map center to specific coordinates and zoom level
 Map.setCenter(0.1376, 52.2013, 11);
 
-// Define the Landsat 9 bands and band names for 2013
+// Define the Landsat bands and band names for 2013
 var LC09_bands_2013 = ['ST_B10', 'QA_PIXEL'];
 var bandName_2013 = ['ST', 'QA_PIXEL'];
 
@@ -28,7 +28,7 @@ function cloudMask(image) {
   return image.updateMask(mask_2013.not());
 }
 
-// Load Landsat 9 imagery for the year 2013
+// Load Landsat 8 imagery for the year 2013
 var L9_2013 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
   .select('ST_B10', 'QA_PIXEL')
   .filterBounds(STUDYBOUNDS_2013)
