@@ -38,7 +38,7 @@ function cloudMask(image) {
   return image.updateMask(mask_2003.not());
 }
 
-// Load Landsat 9 imagery for the year 2003
+// Load Landsat 5 imagery for the year 2003
 var L9_2003 = ee.ImageCollection('LANDSAT/LT05/C02/T1_L2')
   .select('ST_B6', 'QA_PIXEL')
   .filterBounds(STUDYBOUNDS_2003)
@@ -79,20 +79,8 @@ Map.addLayer(clip_mean_ST_2003, {
 // Print a message indicating the year of interest
 print("Stats for 2003");
 
-// Reduce the mean surface temperature image to regions within the study area and calculate statistics
-var Cambridge_2003 = clip_mean_ST_2003.reduceRegions({
-  collection: geometry,
-  reducer: ee.Reducer.mean().combine({
-    reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
-  }),
-  scale: 30
-});
-
-// Print the statistics for the study area
-print(Cambridge_2003);
-
 // Reduce the mean surface temperature image to regions within the polygon AOI and calculate statistics
-var Cambridgee_2003 = clip_mean_ST_2003.reduceRegions({
+var Cambridge_2003 = clip_mean_ST_2003.reduceRegions({
   collection: polygon,
   reducer: ee.Reducer.mean().combine({
     reducer2: ee.Reducer.min().combine(ee.Reducer.max(), '', true)
@@ -101,4 +89,4 @@ var Cambridgee_2003 = clip_mean_ST_2003.reduceRegions({
 });
 
 // Print the statistics for the polygon AOI
-print(Cambridgee_2003);
+print(Cambridge_2003);
